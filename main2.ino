@@ -1,4 +1,6 @@
 #include <Adafruit_MotorShield.h>
+#include <ArduinoSTL.h>
+#include <deque>
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
@@ -13,10 +15,9 @@ int pause= 0;
 bool leftenable = true;
 bool rightenable = true;
 int forward = true;
-// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right
-int commandlist[] = {2,1,-1,0,-1,1};
-int commandlength = 6;
-int commandpos = 0;
+// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
+std::deque<int> commandlist = {};
+
 int readfarleft(){
   return digitalRead(farleftPin);
 }
@@ -39,30 +40,16 @@ int readright(){
     return 0;
   }
 }
-int nextcommand(){
-  int temp = commandlist[commandpos];
-  commandpos++;
-  if(commandpos >=commandlength ){
-    commandpos = 0;
-  }
-  return temp;
-}
-void backturnright(){
-  Serial.println("Turning right");
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
-  leftMotor->setSpeed(150);
-  rightMotor->setSpeed(150);
-  //delay(250);
-  //stage 1, far triggered, stage 2 near triggered
-  int stage = 1;
 
+void clockwise180() {
+  Serial.println("Clockwise 180");
+  forward = true;
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(900);
-  while(stage != 2){
+  delay(1800);
+  while(true){
     if(pause == 1){
       continue;
     }
@@ -70,59 +57,55 @@ void backturnright(){
       delay(50);
       Serial.print(digitalRead(buttonPin));
 
-        pause = 1;
-        leftMotor->setSpeed(0);
+      pause = 1;
+      leftMotor->setSpeed(0);
     	rightMotor->setSpeed(0);
       break;
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      leftMotor->run(BACKWARD);
-      rightMotor->run(BACKWARD);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
-      stage = 2;
-      Serial.println("left");
       break;
-      
     }
-}
+  }
 }
 void backlineFollow(){
   leftMotor->run(FORWARD);
-    rightMotor->run(FORWARD);
-    int valLeft = readleft(); // read left input value
-    //Serial.print(valLeft);
-    int valRight = readright(); // read right input value
-    //Serial.println(valRight);
-    if (valLeft) {
-      leftMotor->setSpeed(20);
-      rightMotor->setSpeed(250);
-      delay(70);
-      leftenable = false;
-      rightenable = true;
-    }
-    else if (valRight) {
-      rightMotor->setSpeed(20);
-      leftMotor->setSpeed(250);
-      leftenable = true;
-      rightenable = false;
-      delay(70);
-    }
-    else {
-      leftMotor->setSpeed(230);
-      rightMotor->setSpeed(250);
-      // leftenable = true;
-      // rightenable = true;
-    }
+  rightMotor->run(FORWARD);
+//   int valLeft = readleft(); // read left input value
+//   //Serial.print(valLeft);
+//   int valRight = readright(); // read right input value
+//   //Serial.println(valRight);
+//   if (valLeft) {
+//     leftMotor->setSpeed(20);
+//     rightMotor->setSpeed(250);
+//     delay(70);
+//     leftenable = false;
+//     rightenable = true;
+//   }
+//   else if (valRight) {
+//     rightMotor->setSpeed(20);
+//     leftMotor->setSpeed(250);
+//     leftenable = true;
+//     rightenable = false;
+//     delay(70);
+//   }
+//   else {
+//     leftMotor->setSpeed(230);
+//     rightMotor->setSpeed(250);
+//     // leftenable = true;
+//     // rightenable = true;
+//   }
 }
+
 void lineFollow() {
     Serial.println("Line following");
+    leftMotor->setSpeed(250);
+    rightMotor->setSpeed(250);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
-    int valLeft = readleft(); // read left input value
+    int valLeft = readleft();
     //Serial.print(valLeft);
-    int valRight = readright(); // read right input value
+    int valRight = readright();
     //Serial.println(valRight);
 
     if (valLeft) {
@@ -139,18 +122,7 @@ void lineFollow() {
     }
 }
 
-
-void turnLeft() {
-  delay(500);
-  leftMotor->setSpeed(150);
-  leftMotor->run(FORWARD);
-  delay(1000);
-  int val = 0;
-  while(!val) {
-    val = digitalRead(leftlinesensorPin);
-  }
-}
-void turnRight2() {
+void turnRight() {
   Serial.println("Turning right");
   leftMotor->run(FORWARD);
   rightMotor->run(FORWARD);
@@ -196,7 +168,7 @@ void turnRight2() {
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
 }
-void turnLeft2() {
+void turnLeft() {
   Serial.println("Turning left");
   leftMotor->run(FORWARD);
   rightMotor->run(FORWARD);
@@ -242,17 +214,195 @@ void turnLeft2() {
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
 }
+void backturnright(){
+  Serial.println("Back turn right");
+  forward = true;
+  leftMotor->run(FORWARD);
+  rightMotor->run(FORWARD);
+  leftMotor->setSpeed(150);
+  rightMotor->setSpeed(150);
+  //delay(250);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
 
-void turnRight() {
-  rightMotor->setSpeed(0);
-  delay(500);
-  int val = 0;
-  while(!val) {
-    val = digitalRead(leftlinesensorPin);
+  leftMotor->run(BACKWARD);
+  rightMotor->run(FORWARD);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
+  delay(900);
+  while(stage != 2){
+    if(pause == 1){
+      continue;
+    }
+    if(digitalRead(buttonPin)){
+      delay(50);
+      Serial.print(digitalRead(buttonPin));
+
+        pause = 1;
+        leftMotor->setSpeed(0);
+    	rightMotor->setSpeed(0);
+      break;
+    }
+    Serial.println(leftlinesensorPin);
+    if(digitalRead(leftlinesensorPin)){
+      leftMotor->run(BACKWARD);
+      rightMotor->run(BACKWARD);
+      leftMotor->setSpeed(250);
+      rightMotor->setSpeed(250);
+      stage = 2;
+      Serial.println("left");
+      break;
+      
+    }
   }
 }
-void intersection(int turn){
+void backturnleft(){
+  Serial.println("Back turn left");
+  forward = true;
+  leftMotor->run(FORWARD);
+  rightMotor->run(FORWARD);
+  leftMotor->setSpeed(150);
+  rightMotor->setSpeed(150);
+  //delay(250);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
+
+  leftMotor->run(FORWARD);
+  rightMotor->run(BACKWARD);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
+  delay(900);
+  while(stage != 2){
+    if(pause == 1){
+      continue;
+    }
+    if(digitalRead(buttonPin)){
+      delay(50);
+      Serial.print(digitalRead(buttonPin));
+
+      pause = 1;
+      leftMotor->setSpeed(0);
+    	rightMotor->setSpeed(0);
+      break;
+    }
+    Serial.println(rightlinesensorPin);
+    if(digitalRead(rightlinesensorPin)){
+      leftMotor->run(BACKWARD);
+      rightMotor->run(BACKWARD);
+      leftMotor->setSpeed(250);
+      rightMotor->setSpeed(250);
+      stage = 2;
+      break;
+      
+    }
+  }
 }
+
+void donextcommand(){
+  // Read first command, then remove from the queue
+  int next = commandlist.front();
+  commandlist.pop_front();
+  
+  if(next == -1){
+      turnLeft();
+    }
+  else if(next == 0){
+    leftMotor->setSpeed(230);
+    rightMotor->setSpeed(250);
+    delay(1000);
+  }
+  else if(next == 1){
+    turnRight();
+  }
+  else if(next == 2){
+    backturnright();
+    forward = true;
+  }
+  else if (next == -2){
+    backturnleft();
+    forward = true;
+  }
+  else if (next == 3){
+    clockwise180();
+  }
+}
+
+void get_path(int currentPos, int target) {
+  forward = false;  // In most cases we need to reverse after getting the path
+  if (currentPos == 0 and target == 3) {
+    forward = true;  // This is the only time we want to go forward after getting the path
+    std::deque<int> newlist = {0, -1, 1};
+    commandlist = newlist;
+  }
+  
+  else if (currentPos == 1 and target == 4) {
+    std::deque<int> newlist = {3, -1, -1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 1 and target == 5) {
+    std::deque<int> newlist = {3, 0, -1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 1 and target == 6) {
+    std::deque<int> newlist = {3, -1, 0, 1, -1};
+    commandlist = newlist;
+  }
+
+  else if (currentPos == 2 and target == 4) {
+    std::deque<int> newlist = {3, 1, 0, 1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 2 and target == 5) {
+    std::deque<int> newlist = {3, 0, 0, 1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 2 and target == 6) {
+    std::deque<int> newlist = {3, 1, -1, -1};
+    commandlist = newlist;
+  }
+
+  else if (currentPos == 3 and target == 1) {
+    std::deque<int> newlist = {2, 0, 1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 3 and target == 2) {
+    std::deque<int> newlist = {-2, -1};
+    commandlist = newlist;
+  }
+  else if (currentPos == 4 and target == 1) {
+    std::deque<int> newlist = {-2, 1, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos == 4 and target == 2) {
+    std::deque<int> newlist = {2, 0, -1, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos == 5 and target == 1) {
+    std::deque<int> newlist = {-2, 0, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos == 5 and target == 2) {
+    std::deque<int> newlist = {2, 0, 0, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos == 6 and target == 1) {
+    std::deque<int> newlist = {-2, -1, 0, 1, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos == 6 and target == 2) {
+    std::deque<int> newlist = {-2, 1, -1, 0};
+    commandlist = newlist;
+  }
+  else if (currentPos = 1) {
+    std::deque<int> newlist = {2, -1};
+    commandlist = newlist;
+  }
+  else if (currentPos = 2) {
+    std::deque<int> newlist = {-2, 0, 1};
+    commandlist = newlist;
+  }
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);           // set up Serial library at 9600 bps
@@ -269,54 +419,36 @@ void setup() {
   rightMotor->setSpeed(230);
   leftMotor->run(BACKWARD);
   rightMotor->run(BACKWARD);
-  forward = false;
+  forward = true;
 }
 
 void loop() {
   if(pause){
     leftMotor->setSpeed(0);
-  rightMotor->setSpeed(0);
+    rightMotor->setSpeed(0);
     return;
   }
   if(digitalRead(buttonPin)){
-      delay(50);
-      Serial.print(digitalRead(buttonPin));
+    delay(50);
+    Serial.print(digitalRead(buttonPin));
 
-        pause = 1;
-        leftMotor->setSpeed(0);
-  rightMotor->setSpeed(0);
+    pause = 1;
+    leftMotor->setSpeed(0);
+    rightMotor->setSpeed(0);
 
    }
-   if(!forward){
-      backlineFollow();
+  if (forward){
+    lineFollow();
    }
-   else{lineFollow();}
+  else{backlineFollow();}
   
   if(readfarleft() || readfarright()){
     delay(50);
-    if(!readfarleft()){return;}
+    if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
     leftenable = false;
     rightenable = false;
-    int next = nextcommand();
-    if(next == -1){
-      turnLeft2();
-    }
-    else if(next == 0){
-      leftMotor->setSpeed(230);
-      rightMotor->setSpeed(250);
-      delay(1000);
-    }
-    else if(next == 1){
-      
-      turnRight2();
-    
-    }
-    else if(next == 2){
-      
-      backturnright();
-      forward = true;
-    
-    }
+    donextcommand();
+
     leftenable = true;
     rightenable = true;
   }
