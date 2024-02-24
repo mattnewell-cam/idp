@@ -1,6 +1,6 @@
 #include <Adafruit_MotorShield.h>
 #include <ArduinoSTL.h>
-#include <deque>
+#include <vector>
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
@@ -16,7 +16,7 @@ bool leftenable = true;
 bool rightenable = true;
 int forward = true;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
-std::deque<int> commandlist = {};
+std::vector<int> commandlist = {};
 
 int readfarleft(){
   return digitalRead(farleftPin);
@@ -301,7 +301,7 @@ void backturnleft(){
 void donextcommand(){
   // Read first command, then remove from the queue
   int next = commandlist.front();
-  commandlist.pop_front();
+  commandlist.erase(commandlist.begin());
   
   if(next == -1){
       turnLeft();
@@ -331,75 +331,58 @@ void get_path(int currentPos, int target) {
   forward = false;  // In most cases we need to reverse after getting the path
   if (currentPos == 0 and target == 3) {
     forward = true;  // This is the only time we want to go forward after getting the path
-    std::deque<int> newlist = {0, -1, 1};
-    commandlist = newlist;
+    commandlist = {0, -1, 1};
   }
   
   else if (currentPos == 1 and target == 4) {
-    std::deque<int> newlist = {3, -1, -1};
-    commandlist = newlist;
+    commandlist = {3, -1, -1};
   }
   else if (currentPos == 1 and target == 5) {
-    std::deque<int> newlist = {3, 0, -1};
-    commandlist = newlist;
+    commandlist = {3, 0, -1};
   }
   else if (currentPos == 1 and target == 6) {
-    std::deque<int> newlist = {3, -1, 0, 1, -1};
-    commandlist = newlist;
+    commandlist = {3, -1, 0, 1, -1};
   }
 
   else if (currentPos == 2 and target == 4) {
-    std::deque<int> newlist = {3, 1, 0, 1};
-    commandlist = newlist;
+    commandlist = {3, 1, 0, 1};
   }
   else if (currentPos == 2 and target == 5) {
-    std::deque<int> newlist = {3, 0, 0, 1};
-    commandlist = newlist;
+    commandlist = {3, 0, 0, 1};
   }
   else if (currentPos == 2 and target == 6) {
-    std::deque<int> newlist = {3, 1, -1, -1};
-    commandlist = newlist;
+    commandlist = {3, 1, -1, -1};
   }
 
   else if (currentPos == 3 and target == 1) {
-    std::deque<int> newlist = {2, 0, 1};
-    commandlist = newlist;
+    commandlist = {2, 0, 1};
   }
   else if (currentPos == 3 and target == 2) {
-    std::deque<int> newlist = {-2, -1};
-    commandlist = newlist;
+    commandlist = {-2, -1};
   }
   else if (currentPos == 4 and target == 1) {
-    std::deque<int> newlist = {-2, 1, 0};
-    commandlist = newlist;
+    commandlist = {-2, 1, 0};
   }
   else if (currentPos == 4 and target == 2) {
-    std::deque<int> newlist = {2, 0, -1, 0};
-    commandlist = newlist;
+    commandlist = {2, 0, -1, 0};
   }
   else if (currentPos == 5 and target == 1) {
-    std::deque<int> newlist = {-2, 0, 0};
-    commandlist = newlist;
+    commandlist = {-2, 0, 0};
   }
   else if (currentPos == 5 and target == 2) {
-    std::deque<int> newlist = {2, 0, 0, 0};
-    commandlist = newlist;
+    commandlist = {2, 0, 0, 0};
   }
   else if (currentPos == 6 and target == 1) {
-    std::deque<int> newlist = {-2, -1, 0, 1, 0};
-    commandlist = newlist;
+    commandlist = {-2, -1, 0, 1, 0};
   }
   else if (currentPos == 6 and target == 2) {
-    std::deque<int> newlist = {-2, 1, -1, 0};
-    commandlist = newlist;
+    commandlist = {-2, 1, -1, 0};
   }
   else if (currentPos = 1) {
-    std::deque<int> newlist = {2, -1};
-    commandlist = newlist;
+    commandlist = {2, -1};
   }
   else if (currentPos = 2) {
-    std::deque<int> newlist = {-2, 0, 1};
-    commandlist = newlist;
+    commandlist = {-2, 0, 1};
   }
 }
 
