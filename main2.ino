@@ -69,10 +69,11 @@ void clockwise180() {
   }
 }
 void backlineFollow(){
-  leftMotor->setSpeed(200);
-  rightMotor->setSpeed(250);
+  
   leftMotor->run(FORWARD);
   rightMotor->run(FORWARD);
+  leftMotor->setSpeed(230);
+  rightMotor->setSpeed(250);
 //   int valLeft = readleft(); // read left input value
 //   //Serial.print(valLeft);
 //   int valRight = readright(); // read right input value
@@ -101,6 +102,8 @@ void backlineFollow(){
 
 void lineFollow() {
     Serial.println("Line following");
+    // leftMotor->setSpeed(250);
+    // rightMotor->setSpeed(250);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     int valLeft = readleft();
@@ -109,11 +112,11 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(20);
+      leftMotor->setSpeed(0);
       rightMotor->setSpeed(250);
     }
     else if (valRight) {
-      rightMotor->setSpeed(20);
+      rightMotor->setSpeed(0);
       leftMotor->setSpeed(250);
     }
     else {
@@ -129,13 +132,15 @@ void turnRight() {
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
   delay(250);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
 
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(100);
   delay(1000);
-  while(true){
+  while(stage != 2){
     if(pause == 1){
       continue;
     }
@@ -154,11 +159,17 @@ void turnRight() {
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
+      stage = 2;
       Serial.println("left");
       break;
       
     }
   }
+
+  leftMotor->run(BACKWARD);
+  rightMotor->run(BACKWARD);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
 }
 void turnLeft() {
   Serial.println("Turning left");
@@ -167,13 +178,15 @@ void turnLeft() {
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
   delay(200);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
 
   leftMotor->run(FORWARD);
   rightMotor->run(BACKWARD);
   leftMotor->setSpeed(100);
   rightMotor->setSpeed(250);
   delay(1000);
-  while(true){
+  while(stage != 2){
     if(pause == 1){
       continue;
     }
@@ -192,6 +205,7 @@ void turnLeft() {
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
+      stage = 2;
       Serial.println("right");
       break;
       
@@ -208,16 +222,18 @@ void backturnright(){
   forward = true;
   leftMotor->run(BACKWARD);
   rightMotor->run(BACKWARD);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
-  delay(200);
+  leftMotor->setSpeed(150);
+  rightMotor->setSpeed(150);
+  delay(250);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
 
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
-  while(true){
+  while(stage != 2){
     if(pause == 1){
       continue;
     }
@@ -236,6 +252,9 @@ void backturnright(){
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
+      stage = 2;
+      Serial.println("left");
+      delay(100);
       break;
       
     }
@@ -244,18 +263,20 @@ void backturnright(){
 void backturnleft(){
   Serial.println("Back turn left");
   forward = true;
-
-  // drive slightly forward to avoid back wall
   leftMotor->run(BACKWARD);
   rightMotor->run(BACKWARD);
-  delay(200);
+  leftMotor->setSpeed(150);
+  rightMotor->setSpeed(150);
+  delay(250);
+  //stage 1, far triggered, stage 2 near triggered
+  int stage = 1;
 
   leftMotor->run(FORWARD);
   rightMotor->run(BACKWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
-  while(true){
+  while(stage != 2){
     if(pause == 1){
       continue;
     }
@@ -274,6 +295,8 @@ void backturnleft(){
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
+      delay(100);
+      stage = 2;
       break;
       
     }
@@ -282,7 +305,9 @@ void backturnleft(){
 
 void donextcommand(){
   // Read first command, then remove from the queue
+
   int next = commandlist.front();
+  //commandlist.remove(0);
   commandlist.erase(commandlist.begin());
   
   if(next == -1){
@@ -379,12 +404,16 @@ void setup() {
       while (1);
     }
     Serial.println("Motor Shield found.");
-
+  while(!digitalRead(buttonPin)){
+    continue;
+  }
+  delay(500);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(230);
   leftMotor->run(BACKWARD);
   rightMotor->run(BACKWARD);
-  forward = true;
+  forward = false;
+  get_path(5,2);
 }
 
 void loop() {
@@ -410,8 +439,8 @@ void loop() {
   if(readfarleft() || readfarright()){
     delay(50);
     if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
-    leftenable = false;
-    rightenable = false;
+    //leftenable = false;
+    //rightenable = false;
     donextcommand();
 
     leftenable = true;
