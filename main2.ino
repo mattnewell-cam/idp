@@ -69,6 +69,8 @@ void clockwise180() {
   }
 }
 void backlineFollow(){
+  leftMotor->setSpeed(200);
+  rightMotor->setSpeed(250);
   leftMotor->run(FORWARD);
   rightMotor->run(FORWARD);
 //   int valLeft = readleft(); // read left input value
@@ -99,8 +101,6 @@ void backlineFollow(){
 
 void lineFollow() {
     Serial.println("Line following");
-    leftMotor->setSpeed(250);
-    rightMotor->setSpeed(250);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     int valLeft = readleft();
@@ -129,15 +129,13 @@ void turnRight() {
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
   delay(250);
-  //stage 1, far triggered, stage 2 near triggered
-  int stage = 1;
 
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(100);
   delay(1000);
-  while(stage != 2){
+  while(true){
     if(pause == 1){
       continue;
     }
@@ -156,17 +154,11 @@ void turnRight() {
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
-      stage = 2;
       Serial.println("left");
       break;
       
     }
   }
-
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
 }
 void turnLeft() {
   Serial.println("Turning left");
@@ -175,15 +167,13 @@ void turnLeft() {
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
   delay(200);
-  //stage 1, far triggered, stage 2 near triggered
-  int stage = 1;
 
   leftMotor->run(FORWARD);
   rightMotor->run(BACKWARD);
   leftMotor->setSpeed(100);
   rightMotor->setSpeed(250);
   delay(1000);
-  while(stage != 2){
+  while(true){
     if(pause == 1){
       continue;
     }
@@ -202,7 +192,6 @@ void turnLeft() {
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
-      stage = 2;
       Serial.println("right");
       break;
       
@@ -217,20 +206,18 @@ void turnLeft() {
 void backturnright(){
   Serial.println("Back turn right");
   forward = true;
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
-  leftMotor->setSpeed(150);
-  rightMotor->setSpeed(150);
-  //delay(250);
-  //stage 1, far triggered, stage 2 near triggered
-  int stage = 1;
+  leftMotor->run(BACKWARD);
+  rightMotor->run(BACKWARD);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
+  delay(200);
 
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
-  while(stage != 2){
+  while(true){
     if(pause == 1){
       continue;
     }
@@ -249,8 +236,6 @@ void backturnright(){
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
-      stage = 2;
-      Serial.println("left");
       break;
       
     }
@@ -259,20 +244,18 @@ void backturnright(){
 void backturnleft(){
   Serial.println("Back turn left");
   forward = true;
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
-  leftMotor->setSpeed(150);
-  rightMotor->setSpeed(150);
-  //delay(250);
-  //stage 1, far triggered, stage 2 near triggered
-  int stage = 1;
+
+  // drive slightly forward to avoid back wall
+  leftMotor->run(BACKWARD);
+  rightMotor->run(BACKWARD);
+  delay(200);
 
   leftMotor->run(FORWARD);
   rightMotor->run(BACKWARD);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
-  while(stage != 2){
+  while(true){
     if(pause == 1){
       continue;
     }
@@ -291,7 +274,6 @@ void backturnleft(){
       rightMotor->run(BACKWARD);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
-      stage = 2;
       break;
       
     }
