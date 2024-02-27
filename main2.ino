@@ -344,9 +344,9 @@ void get_path(int currentPos, int target) {
 }
 
 bool buttonpressed() {
-  if digitalRead(buttonPin) {
+  if (digitalRead(buttonPin)) {
     delay(50);
-    if digitalRead(buttonPin) {
+    if (digitalRead(buttonPin)) {
       return true;
     }
   }
@@ -362,6 +362,7 @@ void move() {
     while (pause) {
       if (buttonpressed) {pause = 0;}
     }
+  }
 
   if (forward) {lineFollow();}
   else {backlineFollow();}
@@ -371,10 +372,11 @@ void move() {
     if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
     leftenable = false;
     rightenable = false;
-    if (commandlist) {donextcommand();}
+    if (commandlist.empty()) {donextcommand();}
     else {
       // Cube pick-up sequence call
     }
+  }
 }
 
 void setup() {
