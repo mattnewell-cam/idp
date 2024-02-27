@@ -21,6 +21,10 @@ int forward = true;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
 std::vector<int> commandlist = {};
 
+// Parameters
+int reversetime = 350;
+int turntime = 1000;
+
 int readfarleft(){
   return digitalRead(farleftPin);
 }
@@ -51,7 +55,7 @@ void clockwise180() {
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(1800);
+  delay(1000);
   while(true){
     if(pause == 1){
       continue;
@@ -131,13 +135,13 @@ void turnRight() {
   rightMotor->run(rightback);
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
-  delay(350);
+  delay(reversetime);
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(100);
-  delay(1000);
+  delay(turntime);
   while(true){
     if(pause == 1){
       continue;
@@ -145,21 +149,14 @@ void turnRight() {
     if(digitalRead(buttonPin)){
       delay(50);
       Serial.print(digitalRead(buttonPin));
-
-        pause = 1;
-        leftMotor->setSpeed(0);
+      pause = 1;
+      leftMotor->setSpeed(0);
     	rightMotor->setSpeed(0);
       break;
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      leftMotor->run(leftfor);
-      rightMotor->run(rightfor);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
-      Serial.println("left");
       break;
-      
     }
   }
 }
@@ -169,13 +166,13 @@ void turnLeft() {
   rightMotor->run(rightback);
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
-  delay(350);
+  delay(reversetime);
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
   leftMotor->setSpeed(100);
   rightMotor->setSpeed(250);
-  delay(1000);
+  delay(turntime);
   while(true){
     if(pause == 1){
       continue;
@@ -183,28 +180,16 @@ void turnLeft() {
     if(digitalRead(buttonPin)){
       delay(50);
       Serial.print(digitalRead(buttonPin));
-
-        pause = 1;
-        leftMotor->setSpeed(0);
+      pause = 1;
+      leftMotor->setSpeed(0);
     	rightMotor->setSpeed(0);
       break;
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      leftMotor->run(leftfor);
-      rightMotor->run(rightfor);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
-      Serial.println("right");
       break;
-      
     }
   }
-
-  leftMotor->run(leftfor);
-  rightMotor->run(rightfor);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
 }
 void backturnright(){
   Serial.println("Back turn right");
@@ -217,8 +202,6 @@ void backturnright(){
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
   delay(900);
   while(true){
     if(pause == 1){
@@ -227,18 +210,13 @@ void backturnright(){
     if(digitalRead(buttonPin)){
       delay(50);
       Serial.print(digitalRead(buttonPin));
-
-        pause = 1;
-        leftMotor->setSpeed(0);
+      pause = 1;
+      leftMotor->setSpeed(0);
     	rightMotor->setSpeed(0);
       break;
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      leftMotor->run(leftfor);
-      rightMotor->run(rightfor);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
       break;
       
     }
@@ -249,14 +227,14 @@ void backturnleft(){
   forward = true;
 
   // drive slightly forward to avoid back wall
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
   leftMotor->run(leftfor);
   rightMotor->run(rightfor);
   delay(200);
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
   delay(900);
   while(true){
     if(pause == 1){
@@ -265,7 +243,6 @@ void backturnleft(){
     if(digitalRead(buttonPin)){
       delay(50);
       Serial.print(digitalRead(buttonPin));
-
       pause = 1;
       leftMotor->setSpeed(0);
     	rightMotor->setSpeed(0);
@@ -273,28 +250,22 @@ void backturnleft(){
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      leftMotor->run(leftfor);
-      rightMotor->run(rightfor);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
       break;
-      
     }
   }
 }
 
 void donextcommand(){
   // Read first command, then remove from the queue
-  int next = -2;
-  // int next = commandlist.front();
-  // commandlist.erase(commandlist.begin());
+  int next = commandlist.front();
+  commandlist.erase(commandlist.begin());
   
   if(next == -1){
       turnLeft();
     }
   else if(next == 0){
-    leftMotor->setSpeed(230);
-    rightMotor->setSpeed(250);
+    leftMotor->setSpeed(255);
+    rightMotor->setSpeed(230);
     delay(1000);
   }
   else if(next == 1){
@@ -370,6 +341,40 @@ void get_path(int currentPos, int target) {
   else if (currentPos = 2) {
     commandlist = {-2, 0, 1};
   }
+}
+
+bool buttonpressed() {
+  if digitalRead(buttonPin) {
+    delay(50);
+    if digitalRead(buttonPin) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void move() {
+  // This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
+  if(buttonpressed){
+    pause = 1;
+    leftMotor->setSpeed(0);
+    rightMotor->setSpeed(0);
+    while (pause) {
+      if (buttonpressed) {pause = 0;}
+    }
+
+  if (forward) {lineFollow();}
+  else {backlineFollow();}
+  
+  if(readfarleft() || readfarright()){
+    delay(100);
+    if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
+    leftenable = false;
+    rightenable = false;
+    if (commandlist) {donextcommand();}
+    else {
+      // Cube pick-up sequence call
+    }
 }
 
 void setup() {
