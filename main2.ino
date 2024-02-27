@@ -1,7 +1,10 @@
 #include <Adafruit_MotorShield.h>
 #include <ArduinoSTL.h>
 #include <vector>
-
+#define leftfor FORWARD
+#define leftback BACKWARD
+#define rightback BACKWARD
+#define rightfor FORWARD
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
@@ -44,8 +47,8 @@ int readright(){
 void clockwise180() {
   Serial.println("Clockwise 180");
   forward = true;
-  leftMotor->run(BACKWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(1800);
@@ -71,8 +74,8 @@ void clockwise180() {
 void backlineFollow(){
   leftMotor->setSpeed(200);
   rightMotor->setSpeed(250);
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftback);
+  rightMotor->run(rightback);
 //   int valLeft = readleft(); // read left input value
 //   //Serial.print(valLeft);
 //   int valRight = readright(); // read right input value
@@ -101,37 +104,37 @@ void backlineFollow(){
 
 void lineFollow() {
     Serial.println("Line following");
-    leftMotor->run(BACKWARD);
-    rightMotor->run(BACKWARD);
+    leftMotor->run(leftfor);
+    rightMotor->run(rightfor);
     int valLeft = readleft();
     //Serial.print(valLeft);
     int valRight = readright();
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(20);
-      rightMotor->setSpeed(250);
+      leftMotor->setSpeed(0);
+      rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(20);
-      leftMotor->setSpeed(250);
+      rightMotor->setSpeed(0);
+      leftMotor->setSpeed(255);
     }
     else {
-      leftMotor->setSpeed(230);
-      rightMotor->setSpeed(250);
+      leftMotor->setSpeed(255);
+      rightMotor->setSpeed(230);
     }
 }
 
 void turnRight() {
   Serial.println("Turning right");
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftback);
+  rightMotor->run(rightback);
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
-  delay(250);
+  delay(350);
 
-  leftMotor->run(BACKWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(100);
   delay(1000);
@@ -150,8 +153,8 @@ void turnRight() {
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      leftMotor->run(BACKWARD);
-      rightMotor->run(BACKWARD);
+      leftMotor->run(leftfor);
+      rightMotor->run(rightfor);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
       Serial.println("left");
@@ -162,14 +165,14 @@ void turnRight() {
 }
 void turnLeft() {
   Serial.println("Turning left");
-  leftMotor->run(FORWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftback);
+  rightMotor->run(rightback);
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
-  delay(200);
+  delay(350);
 
-  leftMotor->run(FORWARD);
-  rightMotor->run(BACKWARD);
+  leftMotor->run(leftback);
+  rightMotor->run(rightfor);
   leftMotor->setSpeed(100);
   rightMotor->setSpeed(250);
   delay(1000);
@@ -188,8 +191,8 @@ void turnLeft() {
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      leftMotor->run(BACKWARD);
-      rightMotor->run(BACKWARD);
+      leftMotor->run(leftfor);
+      rightMotor->run(rightfor);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
       Serial.println("right");
@@ -198,22 +201,22 @@ void turnLeft() {
     }
   }
 
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
 }
 void backturnright(){
   Serial.println("Back turn right");
   forward = true;
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(200);
 
-  leftMotor->run(BACKWARD);
-  rightMotor->run(FORWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
@@ -232,8 +235,8 @@ void backturnright(){
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      leftMotor->run(BACKWARD);
-      rightMotor->run(BACKWARD);
+      leftMotor->run(leftfor);
+      rightMotor->run(rightfor);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
       break;
@@ -246,12 +249,12 @@ void backturnleft(){
   forward = true;
 
   // drive slightly forward to avoid back wall
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
+  leftMotor->run(leftfor);
+  rightMotor->run(rightfor);
   delay(200);
 
-  leftMotor->run(FORWARD);
-  rightMotor->run(BACKWARD);
+  leftMotor->run(leftback);
+  rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(900);
@@ -270,8 +273,8 @@ void backturnleft(){
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      leftMotor->run(BACKWARD);
-      rightMotor->run(BACKWARD);
+      leftMotor->run(leftfor);
+      rightMotor->run(rightfor);
       leftMotor->setSpeed(250);
       rightMotor->setSpeed(250);
       break;
@@ -282,8 +285,9 @@ void backturnleft(){
 
 void donextcommand(){
   // Read first command, then remove from the queue
-  int next = commandlist.front();
-  commandlist.erase(commandlist.begin());
+  int next = -2;
+  // int next = commandlist.front();
+  // commandlist.erase(commandlist.begin());
   
   if(next == -1){
       turnLeft();
@@ -382,9 +386,9 @@ void setup() {
 
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(230);
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
-  forward = true;
+  leftMotor->run(leftfor);
+  rightMotor->run(rightfor);
+  forward = false;
 }
 
 void loop() {
@@ -408,7 +412,7 @@ void loop() {
   else{backlineFollow();}
   
   if(readfarleft() || readfarright()){
-    delay(50);
+    delay(100);
     if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
     leftenable = false;
     rightenable = false;
