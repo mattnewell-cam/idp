@@ -19,7 +19,7 @@ int pause= 0;
 bool leftenable = true;
 bool rightenable = true;
 int forward = true;
-Servo grabber;
+// Servo grabber;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
 std::vector<int> commandlist = {};
 
@@ -103,7 +103,7 @@ void lineFollow() {
     }
     else {
       leftMotor->setSpeed(255);
-      rightMotor->setSpeed(230);
+      rightMotor->setSpeed(200);
     }
 }
 
@@ -237,6 +237,7 @@ void donextcommand(){
   // Read first command, then remove from the queue
   int next = commandlist.front();
   commandlist.erase(commandlist.begin());
+  next = 1;
   
   if(next == -1){
       turnLeft();
@@ -333,12 +334,14 @@ bool buttonpressed() {
 
 void move() {
   // This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
-  if(buttonpressed){
+  if(buttonpressed()){
     pause = 1;
     leftMotor->setSpeed(0);
     rightMotor->setSpeed(0);
+    delay(200);
     while (pause) {
-      if (buttonpressed) {pause = 0;}
+      if (buttonpressed()) {pause = 0;}
+      delay(200);
     }
   }
 
@@ -346,7 +349,7 @@ void move() {
   else {backlineFollow();}
 
   if (commandlist.empty()) {
-    get_cube();
+    // get_cube();
   }
   
   if(readfarleft() || readfarright()){
@@ -355,19 +358,21 @@ void move() {
     leftenable = false;
     rightenable = false;
     donextcommand();
+    leftenable = true;
+    rightenable = true;
   }
 }
 
-get_cube() {
-  do {
-    ultrasounddistance = analogRead(ultrasoundPin) * 520/1023;
-    linefollow();
-  }
-  while (ultrasounddistance > 5);
-  delay(100);
-  if (analogRead(ultrasoundPin) * 520/1023 > 5) {get_cube();}
-  grab();
-}
+// get_cube() {
+//   do {
+//     ultrasounddistance = analogRead(ultrasoundPin) * 520/1023;
+//     linefollow();
+//   }
+//   while (ultrasounddistance > 5);
+//   delay(100);
+//   if (analogRead(ultrasoundPin) * 520/1023 > 5) {get_cube();}
+//   // grab();
+// }
 
 void setup() {
   // put your setup code here, to run once:
@@ -385,11 +390,12 @@ void setup() {
   rightMotor->setSpeed(230);
   leftMotor->run(leftfor);
   rightMotor->run(rightfor);
-  forward = false;
-  grabber.attach(9);
+  forward = true;
+  // grabber.attach(9);
   get_path(0, 3);
 }
 
 void loop() {
   move();
+  get_path(0, 3);
 }
