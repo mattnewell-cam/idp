@@ -103,7 +103,7 @@ void lineFollow() {
     }
     else {
       leftMotor->setSpeed(255);
-      rightMotor->setSpeed(200);
+      rightMotor->setSpeed(255);
     }
 }
 
@@ -237,7 +237,7 @@ void donextcommand(){
   // Read first command, then remove from the queue
   int next = commandlist.front();
   commandlist.erase(commandlist.begin());
-  next = 1;
+
   
   if(next == -1){
       turnLeft();
@@ -260,6 +260,9 @@ void donextcommand(){
   }
   else if (next == 3){
     clockwise180();
+  }
+  if(commandlist.empty()){
+    get_path(0,7);
   }
 }
 
@@ -314,33 +317,28 @@ void get_path(int currentPos, int target) {
   else if (currentPos == 6 and target == 2) {
     commandlist = {-2, 1, -1, 0};
   }
-  else if (currentPos = 1) {
+  else if (currentPos == 1) {
     commandlist = {2, -1};
   }
-  else if (currentPos = 2) {
+  else if (currentPos == 2) {
     commandlist = {-2, 0, 1};
+  }
+  else if (currentPos == 0 and target == 7) {
+    forward = true;
+    commandlist = {0, -1, 0, -1, 0, -1};
   }
 }
 
-bool buttonpressed() {
-  if (digitalRead(buttonPin)) {
-    delay(50);
-    if (digitalRead(buttonPin)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 void move() {
   // This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
-  if(buttonpressed()){
+  if(digitalRead(buttonPin)){
     pause = 1;
     leftMotor->setSpeed(0);
     rightMotor->setSpeed(0);
     delay(200);
     while (pause) {
-      if (buttonpressed()) {pause = 0;}
+      if (digitalRead(buttonPin)) {pause = 0;}
       delay(200);
     }
   }
@@ -392,10 +390,9 @@ void setup() {
   rightMotor->run(rightfor);
   forward = true;
   // grabber.attach(9);
-  get_path(0, 3);
+  get_path(0, 7);
 }
 
 void loop() {
   move();
-  get_path(0, 3);
 }
