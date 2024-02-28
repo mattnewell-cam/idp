@@ -108,7 +108,7 @@ void lineFollow() {
       rightMotor->setSpeed(255);
     }
 }
-oid slowlineFollow() {
+void slowlineFollow() {
     Serial.println("Line following");
     leftMotor->run(leftfor);
     rightMotor->run(rightfor);
