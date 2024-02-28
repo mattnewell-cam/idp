@@ -14,10 +14,12 @@ int leftlinesensorPin = 6;
 int rightlinesensorPin = 4;
 int farleftPin = 5;
 int farrightPin = 7;
+int ultrasounddistance = 100;
 int pause= 0;
 bool leftenable = true;
 bool rightenable = true;
 int forward = true;
+Servo grabber;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
 std::vector<int> commandlist = {};
 
@@ -80,30 +82,6 @@ void backlineFollow(){
   rightMotor->setSpeed(250);
   leftMotor->run(leftback);
   rightMotor->run(rightback);
-//   int valLeft = readleft(); // read left input value
-//   //Serial.print(valLeft);
-//   int valRight = readright(); // read right input value
-//   //Serial.println(valRight);
-//   if (valLeft) {
-//     leftMotor->setSpeed(20);
-//     rightMotor->setSpeed(250);
-//     delay(70);
-//     leftenable = false;
-//     rightenable = true;
-//   }
-//   else if (valRight) {
-//     rightMotor->setSpeed(20);
-//     leftMotor->setSpeed(250);
-//     leftenable = true;
-//     rightenable = false;
-//     delay(70);
-//   }
-//   else {
-//     leftMotor->setSpeed(230);
-//     rightMotor->setSpeed(250);
-//     // leftenable = true;
-//     // rightenable = true;
-//   }
 }
 
 void lineFollow() {
@@ -366,17 +344,29 @@ void move() {
 
   if (forward) {lineFollow();}
   else {backlineFollow();}
+
+  if (commandlist.empty()) {
+    get_cube();
+  }
   
   if(readfarleft() || readfarright()){
     delay(100);
     if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
     leftenable = false;
     rightenable = false;
-    if (commandlist.empty()) {donextcommand();}
-    else {
-      // Cube pick-up sequence call
-    }
+    donextcommand();
   }
+}
+
+get_cube() {
+  do {
+    ultrasounddistance = analogRead(ultrasoundPin) * 520/1023;
+    linefollow();
+  }
+  while (ultrasounddistance > 5);
+  delay(100);
+  if (analogRead(ultrasoundPin) * 520/1023 > 5) {get_cube();}
+  grab();
 }
 
 void setup() {
@@ -396,36 +386,10 @@ void setup() {
   leftMotor->run(leftfor);
   rightMotor->run(rightfor);
   forward = false;
+  grabber.attach(9);
+  get_path(0, 3);
 }
 
 void loop() {
-  if(pause){
-    leftMotor->setSpeed(0);
-    rightMotor->setSpeed(0);
-    return;
-  }
-  if(digitalRead(buttonPin)){
-    delay(50);
-    Serial.print(digitalRead(buttonPin));
-
-    pause = 1;
-    leftMotor->setSpeed(0);
-    rightMotor->setSpeed(0);
-
-   }
-  if (forward){
-    lineFollow();
-   }
-  else{backlineFollow();}
-  
-  if(readfarleft() || readfarright()){
-    delay(100);
-    if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
-    leftenable = false;
-    rightenable = false;
-    donextcommand();
-
-    leftenable = true;
-    rightenable = true;
-  }
+  move();
 }
