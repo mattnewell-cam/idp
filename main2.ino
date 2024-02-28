@@ -1,6 +1,7 @@
 #include <Adafruit_MotorShield.h>
 #include <ArduinoSTL.h>
 #include <vector>
+#include<Servo.h>
 #define leftfor FORWARD
 #define leftback BACKWARD
 #define rightback BACKWARD
@@ -22,11 +23,12 @@ int forward = true;
 // Servo grabber;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
 std::vector<int> commandlist = {};
-
+int curr;
+int tar;
 // Parameters
 int reversetime = 350;
 int turntime = 1000;
-
+Servo myservo;
 int readfarleft(){
   return digitalRead(farleftPin);
 }
@@ -106,7 +108,65 @@ void lineFollow() {
       rightMotor->setSpeed(255);
     }
 }
+oid slowlineFollow() {
+    Serial.println("Line following");
+    leftMotor->run(leftfor);
+    rightMotor->run(rightfor);
+    int valLeft = readleft();
+    //Serial.print(valLeft);
+    int valRight = readright();
+    //Serial.println(valRight);
 
+    if (valLeft) {
+      leftMotor->setSpeed(0);
+      rightMotor->setSpeed(125);
+    }
+    else if (valRight) {
+      rightMotor->setSpeed(0);
+      leftMotor->setSpeed(125);
+    }
+    else {
+      leftMotor->setSpeed(125);
+      rightMotor->setSpeed(125);
+    }
+}
+int detectblock(){
+  return 1;
+}
+void grab(){
+    myservo.write(125);
+    rightenable = true;
+    leftenable = true;
+    while(!detectblock()){
+        slowlinefollow();
+    }
+    delay(100);
+    myservo.write(0);
+    curr = tar;
+    tar = 1;
+    getpath(curr,tar);
+
+}
+int detecthit(){
+  return 1;
+}
+void release(){
+  while(!detecthit()){
+        slowlinefollow();
+    }
+  delay(100);
+  myservo.write(270);
+  delay(100);
+  myservo.write(0);
+  int temp = tar;
+  tar = curr +1;
+  if(tar>6){
+    tar = 0;
+  }
+  curr = temp;
+  getpath(curr,tar);
+
+}
 void turnRight() {
   Serial.println("Turning right");
   leftMotor->run(leftback);
@@ -383,7 +443,7 @@ void setup() {
       while (1);
     }
     Serial.println("Motor Shield found.");
-
+  pause = 1;
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(230);
   leftMotor->run(leftfor);
