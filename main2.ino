@@ -2,12 +2,14 @@
 #include <ArduinoSTL.h>
 #include <vector>
 #include<Servo.h>
+#define MAX_RANG (520)
+#define ADC_SOLUTION (1023.0)
 #define leftfor FORWARD
 #define leftback BACKWARD
 #define rightback BACKWARD
 #define rightfor FORWARD
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-
+float dist_t, sensity_t;
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 int buttonPin = 8;
@@ -20,15 +22,19 @@ int pause= 0;
 bool leftenable = true;
 bool rightenable = true;
 int forward = true;
-// Servo grabber;
-// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180
+int sensityPin = A3; 
+Servo grabber;
+// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180, -4 turn left and grab, 4 turn right and grab
 std::vector<int> commandlist = {};
 int curr;
 int tar;
+
 // Parameters
 int reversetime = 350;
 int turntime = 1000;
-Servo myservo;
+void slowlinefollow();
+
+//Servo myservo;
 int readfarleft(){
   return digitalRead(farleftPin);
 }
@@ -51,18 +57,25 @@ int readright(){
     return 0;
   }
 }
-
+int ultrasoundread(){
+  sensity_t = analogRead(sensityPin);
+ // turn the ledPin on
+ Serial.print(sensity_t * MAX_RANG / ADC_SOLUTION);
+ return dist_t = sensity_t * MAX_RANG / ADC_SOLUTION;
+}
 void clockwise180() {
   Serial.println("Clockwise 180");
   forward = true;
+  delay(300);
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(1000);
+  delay(1500);
+   Serial.print("here");
   while(true){
     if(pause == 1){
-      continue;
+      return;
     }
     if(digitalRead(buttonPin)){
       delay(50);
@@ -75,13 +88,52 @@ void clockwise180() {
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
+      leftMotor->run(leftfor);
+  rightMotor->run(rightfor);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
       break;
     }
   }
 }
-void backlineFollow(){
-  leftMotor->setSpeed(200);
+
+void ccw180() {
+  Serial.println("Clockwise 180");
+  forward = true;
+  delay(300);
+  leftMotor->run(leftback);
+  rightMotor->run(rightfor);
+  leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
+  delay(1500);
+   Serial.print("here");
+  while(true){
+    if(pause == 1){
+      return;
+    }
+    if(digitalRead(buttonPin)){
+      delay(50);
+      Serial.print(digitalRead(buttonPin));
+
+      pause = 1;
+      leftMotor->setSpeed(0);
+    	rightMotor->setSpeed(0);
+      break;
+    }
+    Serial.println(rightlinesensorPin);
+    if(digitalRead(rightlinesensorPin)){
+      leftMotor->run(leftfor);
+      rightMotor->run(rightfor);
+      leftMotor->setSpeed(250);
+      rightMotor->setSpeed(250);
+      break;
+    }
+  }
+}
+
+void backlineFollow(){
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(220);
   leftMotor->run(leftback);
   rightMotor->run(rightback);
 }
@@ -96,11 +148,11 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(0);
+      leftMotor->setSpeed(25);
       rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(0);
+      rightMotor->setSpeed(25);
       leftMotor->setSpeed(255);
     }
     else {
@@ -108,7 +160,7 @@ void lineFollow() {
       rightMotor->setSpeed(255);
     }
 }
-void slowlineFollow() {
+void slowlinefollow() {
     Serial.println("Line following");
     leftMotor->run(leftfor);
     rightMotor->run(rightfor);
@@ -119,52 +171,70 @@ void slowlineFollow() {
 
     if (valLeft) {
       leftMotor->setSpeed(0);
-      rightMotor->setSpeed(125);
+      rightMotor->setSpeed(185);
     }
     else if (valRight) {
       rightMotor->setSpeed(0);
-      leftMotor->setSpeed(125);
+      leftMotor->setSpeed(185);
     }
     else {
-      leftMotor->setSpeed(125);
-      rightMotor->setSpeed(125);
+      leftMotor->setSpeed(185);
+      rightMotor->setSpeed(185);
     }
 }
 int detectblock(){
-  return 1;
+  if(ultrasoundread()<3){
+      delay(100);
+      if(ultrasoundread()<3)
+      return true;
+  }
+  return false;
 }
 void grab(){
-    myservo.write(125);
+    
+
+    grabber.write(80);
     rightenable = true;
     leftenable = true;
     while(!detectblock()){
         slowlinefollow();
     }
-    delay(100);
-    myservo.write(0);
+    leftMotor->setSpeed(185);
+      rightMotor->setSpeed(185);
+    delay(150);
+    leftMotor->setSpeed(0);
+      rightMotor->setSpeed(0);
+    delay(150);
+    for(int i=80;i>0;i--){
+    grabber.write(i);
+    delay(10);
+    }
+    delay(250);
+
     curr = tar;
     tar = 1;
-    getpath(curr,tar);
+    get_path(curr,tar);
 
 }
-int detecthit(){
+int detect_hit(){
   return 1;
 }
 void release(){
-  while(!detecthit()){
+  while(!detect_hit()){
         slowlinefollow();
     }
   delay(100);
-  myservo.write(270);
+  grabber.write(270);
   delay(100);
-  myservo.write(0);
+
+  grabber.write(0);
   int temp = tar;
   tar = curr +1;
   if(tar>6){
     tar = 0;
   }
   curr = temp;
-  getpath(curr,tar);
+  get_path(curr,tar);
 
 }
 void turnRight() {
@@ -177,12 +247,14 @@ void turnRight() {
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
+  rightMotor->setSpeed(250);
+  delay(15);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(100);
   delay(turntime);
   while(true){
     if(pause == 1){
-      continue;
+      return;
     }
     if(digitalRead(buttonPin)){
       delay(50);
@@ -202,18 +274,22 @@ void turnLeft() {
   Serial.println("Turning left");
   leftMotor->run(leftback);
   rightMotor->run(rightback);
+  
   leftMotor->setSpeed(150);
   rightMotor->setSpeed(150);
   delay(reversetime);
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
+  delay(150);
   leftMotor->setSpeed(100);
   rightMotor->setSpeed(250);
   delay(turntime);
   while(true){
     if(pause == 1){
-      continue;
+      return;
     }
     if(digitalRead(buttonPin)){
       delay(50);
@@ -243,7 +319,7 @@ void backturnright(){
   delay(900);
   while(true){
     if(pause == 1){
-      continue;
+      return;
     }
     if(digitalRead(buttonPin)){
       delay(50);
@@ -276,7 +352,7 @@ void backturnleft(){
   delay(900);
   while(true){
     if(pause == 1){
-      continue;
+      return;
     }
     if(digitalRead(buttonPin)){
       delay(50);
@@ -297,7 +373,7 @@ void donextcommand(){
   // Read first command, then remove from the queue
   int next = commandlist.front();
   commandlist.erase(commandlist.begin());
-
+  //int next = -4;
   
   if(next == -1){
       turnLeft();
@@ -305,7 +381,7 @@ void donextcommand(){
   else if(next == 0){
     leftMotor->setSpeed(255);
     rightMotor->setSpeed(230);
-    delay(1000);
+    delay(500);
   }
   else if(next == 1){
     turnRight();
@@ -321,9 +397,20 @@ void donextcommand(){
   else if (next == 3){
     clockwise180();
   }
-  if(commandlist.empty()){
-    get_path(0,7);
+  else if (next == -3) {
+    ccw180();
   }
+  else if (next == -4){
+    turnLeft();
+    grab();
+  }
+  else if (next == 4){
+    turnRight();
+    grab();
+  }
+  // if(commandlist.empty()){
+  //   get_path(0,7);
+  // }
 }
 
 void get_path(int currentPos, int target) {
@@ -336,6 +423,10 @@ void get_path(int currentPos, int target) {
   else if (currentPos == 1 and target == 4) {
     commandlist = {3, -1, -1};
   }
+  else if (currentPos == -1 and target == -1) {
+    forward = true;
+    commandlist = {-4};
+  }
   else if (currentPos == 1 and target == 5) {
     commandlist = {3, 0, -1};
   }
@@ -344,13 +435,13 @@ void get_path(int currentPos, int target) {
   }
 
   else if (currentPos == 2 and target == 4) {
-    commandlist = {3, 1, 0, 1};
+    commandlist = {-3, 1, 0, 1};
   }
   else if (currentPos == 2 and target == 5) {
-    commandlist = {3, 0, 0, 1};
+    commandlist = {-3, 0, 0, 1};
   }
   else if (currentPos == 2 and target == 6) {
-    commandlist = {3, 1, -1, -1};
+    commandlist = {-3, 1, -1, -1};
   }
 
   else if (currentPos == 3 and target == 1) {
@@ -392,15 +483,17 @@ void get_path(int currentPos, int target) {
 
 void move() {
   // This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
+  while (pause) {
+      if (digitalRead(buttonPin)) {pause = 0;}
+      delay(200);
+    }
   if(digitalRead(buttonPin)){
     pause = 1;
     leftMotor->setSpeed(0);
     rightMotor->setSpeed(0);
-    delay(200);
-    while (pause) {
-      if (digitalRead(buttonPin)) {pause = 0;}
-      delay(200);
-    }
+    delay(500);
+    return;
+    
   }
 
   if (forward) {lineFollow();}
@@ -429,7 +522,8 @@ void move() {
 //   while (ultrasounddistance > 5);
 //   delay(100);
 //   if (analogRead(ultrasoundPin) * 520/1023 > 5) {get_cube();}
-//   // grab();
+//   // grabber;
+// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180, -4 turn left and grab, 4 turn right and grab
 // }
 
 void setup() {
@@ -444,15 +538,18 @@ void setup() {
     }
     Serial.println("Motor Shield found.");
   pause = 1;
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(230);
-  leftMotor->run(leftfor);
-  rightMotor->run(rightfor);
+  // leftMotor->setSpeed(250);
+  // rightMotor->setSpeed(230);
+  // leftMotor->run(leftfor);
+  // rightMotor->run(rightfor);
   forward = true;
-  // grabber.attach(9);
-  get_path(0, 7);
+  grabber.attach(9);
+  curr = 2;
+  tar = 5;
+  get_path(-1, -1);
 }
 
 void loop() {
+
   move();
 }
