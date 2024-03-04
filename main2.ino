@@ -59,6 +59,7 @@ void blueflash(){
   }
 }
 int readfarleft(){
+
   return digitalRead(farleftPin);
 }
 int readfarright(){
@@ -105,7 +106,7 @@ void clockwise180() {
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
+  rightMotor->setSpeed(210);
   delay(1900);
    Serial.print("here");
   while(true){
@@ -130,7 +131,7 @@ void clockwise180() {
       leftMotor->run(leftfor);
   rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
+  rightMotor->setSpeed(230);
       break;
     }
   }
@@ -179,7 +180,7 @@ void ccw180() {
 void backlineFollow(){
 flash = 1;
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(210);
+  rightMotor->setSpeed(230);
   leftMotor->run(leftback);
   rightMotor->run(rightback);
 }
@@ -249,7 +250,7 @@ void grab(){
         slowlinefollow();
     }
     leftMotor->setSpeed(185);
-      rightMotor->setSpeed(185);
+    rightMotor->setSpeed(185);
     delay(190);
     flash = 0;
     digitalWrite(blue,0);
@@ -325,7 +326,7 @@ void turnRight() {
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(150);
+  delay(100);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(120);
   delay(turntime);
@@ -365,8 +366,8 @@ void turnLeft() {
   rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(150);
-  leftMotor->setSpeed(120);
+  delay(100);
+  leftMotor->setSpeed(150);
   rightMotor->setSpeed(250);
   delay(turntime);
   while(true){
@@ -402,7 +403,7 @@ void backturnright(){
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  delay(900);
+  delay(1100);
   while(true){
     blue_flash.tick();
     if(pause == 1){
@@ -438,7 +439,7 @@ void backturnleft(){
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
-  delay(900);
+  delay(1100);
   while(true){
     blue_flash.tick();
     if(pause == 1){
