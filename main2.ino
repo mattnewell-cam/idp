@@ -106,7 +106,7 @@ void clockwise180() {
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(210);
+  rightMotor->setSpeed(250);
   delay(1900);
    Serial.print("here");
   while(true){
