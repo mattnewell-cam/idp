@@ -84,7 +84,7 @@ int readright(){
 bool is_red(){
   uint16_t clear, r, g, b;
   tcs.getRGBC(&r, &g, &b, &clear);
-  if(r > 0.55 *clear){
+  if(r > 150){
     return true;
   }
   else{
@@ -128,7 +128,7 @@ void clockwise180() {
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
       flash = 1;
-      straightfor(300);
+      straightfor(600);
       break;
     }
   }
@@ -165,7 +165,7 @@ void ccw180() {
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
       flash = 1;
-      straightfor(300);
+      straightfor(600);
       break;
     }
   }
@@ -174,7 +174,7 @@ void ccw180() {
 void backlineFollow(){
 flash = 1;
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(230);
+  rightMotor->setSpeed(250);
   leftMotor->run(leftback);
   rightMotor->run(rightback);
 }
@@ -190,11 +190,11 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(80);
+      leftMotor->setSpeed(90);
       rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(80);
+      rightMotor->setSpeed(90);
       leftMotor->setSpeed(255);
     }
     else {
@@ -482,7 +482,7 @@ void donextcommand(){
     //digitalWrite(blue,1);
     leftMotor->setSpeed(255);
     rightMotor->setSpeed(180);
-    delay(500);
+    delay(300);
   }
   else if(next == 1){
     turnRight();
