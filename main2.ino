@@ -42,7 +42,7 @@ int crashsensorpin = 12;
 
 // Parameters
 int reversetime = 100;
-int turntime = 1000;
+int turntime = 800;
 void slowlinefollow();
 int blueon = 0;
 int flash = 0;
@@ -105,9 +105,9 @@ void clockwise180() {
   delay(300);
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  leftMotor->setSpeed(250);
+  leftMotor->setSpeed(230);
   rightMotor->setSpeed(250);
-  delay(1900);
+  delay(1500);
    Serial.print("here");
   while(true){
     blue_flash.tick();
@@ -128,10 +128,7 @@ void clockwise180() {
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
       flash = 1;
-      leftMotor->run(leftfor);
-  rightMotor->run(rightfor);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(230);
+      straightfor(300);
       break;
     }
   }
@@ -146,8 +143,8 @@ void ccw180() {
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
-  delay(1900);
+  rightMotor->setSpeed(230);
+  delay(1500);
    Serial.print("here");
   while(true){
     blue_flash.tick();
@@ -168,10 +165,7 @@ void ccw180() {
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
       flash = 1;
-      leftMotor->run(leftfor);
-      rightMotor->run(rightfor);
-      leftMotor->setSpeed(250);
-      rightMotor->setSpeed(250);
+      straightfor(300);
       break;
     }
   }
@@ -196,17 +190,25 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(25);
+      leftMotor->setSpeed(80);
       rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(25);
+      rightMotor->setSpeed(80);
       leftMotor->setSpeed(255);
     }
     else {
       leftMotor->setSpeed(255);
       rightMotor->setSpeed(255);
     }
+}
+void straightfor(int p){
+  for(int i=0;i<p/15;i++){
+    leftenable = true;
+    rightenable = true;
+    lineFollow();
+    delay(15);
+  }
 }
 void slowlinefollow() {
     flash = 1;
@@ -219,16 +221,16 @@ void slowlinefollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(0);
-      rightMotor->setSpeed(195);
+      leftMotor->setSpeed(80);
+      rightMotor->setSpeed(230);
     }
     else if (valRight) {
-      rightMotor->setSpeed(0);
-      leftMotor->setSpeed(195);
+      rightMotor->setSpeed(80);
+      leftMotor->setSpeed(230);
     }
     else {
-      leftMotor->setSpeed(185);
-      rightMotor->setSpeed(165);
+      leftMotor->setSpeed(230);
+      rightMotor->setSpeed(230);
     }
 }
 int detectblock(){
@@ -328,7 +330,7 @@ void turnRight() {
   rightMotor->setSpeed(250);
   delay(100);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(120);
+  rightMotor->setSpeed(80);
   delay(turntime);
   while(true){
     blue_flash.tick();
@@ -347,6 +349,7 @@ void turnRight() {
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
+      straightfor(500);
       break;
     }
   }
@@ -367,7 +370,7 @@ void turnLeft() {
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(100);
-  leftMotor->setSpeed(150);
+  leftMotor->setSpeed(80);
   rightMotor->setSpeed(250);
   delay(turntime);
   while(true){
@@ -386,6 +389,7 @@ void turnLeft() {
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
+      straightfor(500);
       break;
     }
   }
@@ -403,7 +407,7 @@ void backturnright(){
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  delay(1100);
+  delay(700);
   while(true){
     blue_flash.tick();
     if(pause == 1){
@@ -419,6 +423,7 @@ void backturnright(){
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
+      straightfor(200);
       break;
       
     }
@@ -431,7 +436,7 @@ void backturnleft(){
 
   // drive slightly forward to avoid back wall
   flash = 1;
-  leftMotor->setSpeed(250);
+  leftMotor->setSpeed(180);
   rightMotor->setSpeed(250);
   leftMotor->run(leftfor);
   rightMotor->run(rightfor);
@@ -439,7 +444,7 @@ void backturnleft(){
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
-  delay(1100);
+  delay(700);
   while(true){
     blue_flash.tick();
     if(pause == 1){
@@ -457,6 +462,7 @@ void backturnleft(){
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
+      straightfor(200);
       break;
     }
   }
@@ -475,7 +481,7 @@ void donextcommand(){
     flash = 1;
     //digitalWrite(blue,1);
     leftMotor->setSpeed(255);
-    rightMotor->setSpeed(255);
+    rightMotor->setSpeed(180);
     delay(500);
   }
   else if(next == 1){
