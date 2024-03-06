@@ -389,7 +389,7 @@ void turnLeft() {
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      straightfor(500);
+      straightfor(800);
       break;
     }
   }
@@ -462,7 +462,7 @@ void backturnleft(){
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      straightfor(200);
+      straightfor(800);
       break;
     }
   }
