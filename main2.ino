@@ -84,7 +84,8 @@ int readright(){
 bool is_red(){
   uint16_t clear, r, g, b;
   tcs.getRGBC(&r, &g, &b, &clear);
-  if(r > 150){
+  Serial.println(r);
+  if(r > 0.5 *clear){
     return true;
   }
   else{
@@ -253,13 +254,13 @@ void grab(){
     }
     leftMotor->setSpeed(185);
     rightMotor->setSpeed(185);
-    delay(190);
+    delay(80);
     flash = 0;
     digitalWrite(blue,0);
     leftMotor->setSpeed(0);
       rightMotor->setSpeed(0);
     delay(150);
-    for(int i=80;i>0;i--){
+    for(int i=80;i>15;i--){
     grabber.write(i);
     delay(10);
     }
