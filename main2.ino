@@ -100,7 +100,7 @@ int ultrasoundread(){
 }
 void clockwise180() {
   flash = 1;
-  grabber.write(0);
+  grabber.write(15);
   Serial.println("Clockwise 180");
   forward = true;
   delay(300);
@@ -136,7 +136,7 @@ void clockwise180() {
 }
 
 void ccw180() {
-  grabber.write(0);
+  grabber.write(15);
   Serial.println("Clockwise 180");
   forward = true;
   delay(300);
@@ -350,7 +350,7 @@ void turnRight() {
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      straightfor(500);
+      straightfor(1000);
       break;
     }
   }
@@ -390,13 +390,13 @@ void turnLeft() {
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      straightfor(800);
+      straightfor(1000);
       break;
     }
   }
 }
 void backturnright(){
-  grabber.write(0);
+  grabber.write(15);
   Serial.println("Back turn right");
   forward = true;
   leftMotor->run(leftfor);
@@ -424,14 +424,14 @@ void backturnright(){
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      straightfor(200);
+      straightfor(1000);
       break;
       
     }
   }
 }
 void backturnleft(){
-  grabber.write(0);
+  grabber.write(15);
   Serial.println("Back turn left");
   forward = true;
 
@@ -463,7 +463,7 @@ void backturnleft(){
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      straightfor(800);
+      straightfor(1000);
       break;
     }
   }
