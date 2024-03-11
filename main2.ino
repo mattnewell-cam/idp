@@ -191,11 +191,11 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(90);
+      leftMotor->setSpeed(80);
       rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(90);
+      rightMotor->setSpeed(80);
       leftMotor->setSpeed(255);
     }
     else {
@@ -245,16 +245,16 @@ int detectblock(){
 void grab(){
     
 
-    grabber.write(80);
+    grabber.write(90);
     rightenable = true;
     leftenable = true;
     while(!detectblock()){
       blue_flash.tick();
         slowlinefollow();
     }
-    leftMotor->setSpeed(185);
-    rightMotor->setSpeed(185);
-    delay(80);
+    leftMotor->setSpeed(135);
+    rightMotor->setSpeed(135);
+    delay(40);
     flash = 0;
     digitalWrite(blue,0);
     leftMotor->setSpeed(0);
@@ -646,17 +646,6 @@ void move() {
   }
 }
 
-// get_cube() {
-//   do {
-//     ultrasounddistance = analogRead(ultrasoundPin) * 520/1023;
-//     linefollow();
-//   }
-//   while (ultrasounddistance > 5);
-//   delay(100);
-//   if (analogRead(ultrasoundPin) * 520/1023 > 5) {get_cube();}
-//   // grabber;
-// -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180, -4 turn left and grab, 4 turn right and grab
-// }
 
 void setup() {
   tcs.begin();
