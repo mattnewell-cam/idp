@@ -36,6 +36,7 @@ int sensityPin = A3;
 Servo grabber;
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180, -4 turn left and grab, 4 turn right and grab, -5 turn left and release, 5 turn right and release, 15 straight and release, 16 return to base
 std::vector<int> commandlist = {};
+std::vector<int> visited = {};
 int curr;
 int tar;
 int crashsensorpin = 12;
@@ -243,8 +244,8 @@ int detectblock(){
   return false;
 }
 void grab(){
-    
-
+    visited.push_back(tar);
+  
     grabber.write(90);
     rightenable = true;
     leftenable = true;
@@ -303,15 +304,32 @@ void release(){
   rightMotor->setSpeed(0);
   delay(1500);
   
-  //grabber.write(0);
-  int temp = tar;
-  tar = curr +1;
-  if(tar>6){
-    tar = 0;
+  int here = tar;
+  // We will always go to 3 first. We should always go to 4 second.
+  if (visited.size() == 1) {
+    tar = 4; 
   }
-  curr = temp;
-  get_path(curr,tar);
+  // Decision only needed if on the third block - if at red, go to 5; if at black, go to 6.
+  else if (visited.size() == 2) {
+    if (tar == 1) {
+      tar = 5;
+    }
+    else if (tar == 2) {
+      tar = 6;
+    }
+  }
+  // Go to whichever one we didn't just visit
+  else if (visited.size() == 3) {
+    if (visited[2] == 5) {
+      tar = 6;
+    }
+    else if (visited[2] == 6) {
+      tar = 5;
+    }
+  }
+  curr = here;
   flash = 1;
+  get_path(curr, tar);
 
 }
 void turnRight() {
