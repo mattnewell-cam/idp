@@ -42,8 +42,23 @@ int tar;
 int crashsensorpin = 12;
 
 // Parameters
-int reversetime = 100;
-int turntime = 800;
+int reversetime = 150; // For turnright or turnleft
+int turntime = 500; // 
+int innerwheelturnspeed = 80; 
+int forwardtime = 200; // For backturnright and backturnleft
+int backturntime = 600;
+
+int slowwheelspeed = 80; // During line following
+
+int for_speed_180 = 170; // Speed of the wheel going forward during a 180
+int rvs_speed_180 = 250; // Speed of the wheel going backward during a 180 - faster = tighter
+int delay_180_straight = 300; // How long it keeps going after seeing the line
+int delay_180_turn = 1000; // How long it turns for
+int post_180_delay = 600; // How long it goes straight for when it sees the new line
+
+int slowlinefollow_fast = 200; // These are the line following speeds when doing slowlinefollow
+int slowlinefollow_slow = 100; //
+
 void slowlinefollow();
 int blueon = 0;
 int flash = 0;
@@ -104,12 +119,12 @@ void clockwise180() {
   grabber.write(15);
   Serial.println("Clockwise 180");
   forward = true;
-  delay(300);
+  delay(delay_180_straight);
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  leftMotor->setSpeed(230);
-  rightMotor->setSpeed(250);
-  delay(1500);
+  leftMotor->setSpeed(for_speed_180);
+  rightMotor->setSpeed(rvs_speed_180);
+  delay(delay_180_turn);
    Serial.print("here");
   while(true){
     blue_flash.tick();
@@ -130,7 +145,7 @@ void clockwise180() {
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
       flash = 1;
-      straightfor(600);
+      straightfor(post_180_delay);
       break;
     }
   }
@@ -140,13 +155,13 @@ void ccw180() {
   grabber.write(15);
   Serial.println("Clockwise 180");
   forward = true;
-  delay(300);
+  delay(delay_180_straight);
   flash = 1;
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
-  leftMotor->setSpeed(250);
-  rightMotor->setSpeed(230);
-  delay(1500);
+  leftMotor->setSpeed(rvs_speed_180);
+  rightMotor->setSpeed(for_speed_180);
+  delay(delay_180_turn);
    Serial.print("here");
   while(true){
     blue_flash.tick();
@@ -167,14 +182,14 @@ void ccw180() {
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
       flash = 1;
-      straightfor(600);
+      straightfor(post_180_delay);
       break;
     }
   }
 }
 
 void backlineFollow(){
-flash = 1;
+  flash = 1;
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   leftMotor->run(leftback);
@@ -192,11 +207,11 @@ void lineFollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(80);
+      leftMotor->setSpeed(slowwheelspeed);
       rightMotor->setSpeed(255);
     }
     else if (valRight) {
-      rightMotor->setSpeed(80);
+      rightMotor->setSpeed(slowwheelspeed);
       leftMotor->setSpeed(255);
     }
     else {
@@ -206,6 +221,7 @@ void lineFollow() {
 }
 void straightfor(int p){
   for(int i=0;i<p/15;i++){
+    blue_flash.tick();
     leftenable = true;
     rightenable = true;
     lineFollow();
@@ -223,21 +239,21 @@ void slowlinefollow() {
     //Serial.println(valRight);
 
     if (valLeft) {
-      leftMotor->setSpeed(80);
-      rightMotor->setSpeed(230);
+      leftMotor->setSpeed(slowlinefollow_slow);
+      rightMotor->setSpeed(slowlinefollow_fast);
     }
     else if (valRight) {
-      rightMotor->setSpeed(80);
-      leftMotor->setSpeed(230);
+      rightMotor->setSpeed(slowlinefollow_slow);
+      leftMotor->setSpeed(slowlinefollow_fast);
     }
     else {
-      leftMotor->setSpeed(230);
-      rightMotor->setSpeed(230);
+      leftMotor->setSpeed(slowlinefollow_fast);
+      rightMotor->setSpeed(slowlinefollow_fast);
     }
 }
 int detectblock(){
   if(ultrasoundread()<3){
-      delay(100);
+      delay(0);
       if(ultrasoundread()<3)
       return true;
   }
@@ -245,17 +261,17 @@ int detectblock(){
 }
 void grab(){
     visited.push_back(tar);
-  
-    grabber.write(90);
+
+    grabber.write(100);
     rightenable = true;
     leftenable = true;
     while(!detectblock()){
       blue_flash.tick();
         slowlinefollow();
     }
-    leftMotor->setSpeed(135);
-    rightMotor->setSpeed(135);
-    delay(40);
+    // leftMotor->setSpeed(135);
+    // rightMotor->setSpeed(135);
+    //delay(20);
     flash = 0;
     digitalWrite(blue,0);
     leftMotor->setSpeed(0);
@@ -304,6 +320,14 @@ void release(){
   rightMotor->setSpeed(0);
   delay(1500);
   
+  // //grabber.write(0);
+  // int temp = tar;
+  // tar = curr +1;
+  // if(tar>6){
+  //   tar = 0;
+  // }
+  // curr = temp;
+  // get_path(curr,tar);
   int here = tar;
   // We will always go to 3 first. We should always go to 4 second.
   if (visited.size() == 1) {
@@ -339,17 +363,17 @@ void turnRight() {
   Serial.println("Turning right");
   leftMotor->run(leftback);
   rightMotor->run(rightback);
-  leftMotor->setSpeed(150);
-  rightMotor->setSpeed(150);
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(250);
   delay(reversetime);
 
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(250);
+  rightMotor->setSpeed(250); // Set right motor to max reverse speed to jumpstart it
   delay(100);
   leftMotor->setSpeed(250);
-  rightMotor->setSpeed(80);
+  rightMotor->setSpeed(innerwheelturnspeed);
   delay(turntime);
   while(true){
     blue_flash.tick();
@@ -368,7 +392,7 @@ void turnRight() {
     }
     Serial.println(leftlinesensorPin);
     if(digitalRead(leftlinesensorPin)){
-      straightfor(1000);
+      straightfor(600);
       break;
     }
   }
@@ -389,7 +413,7 @@ void turnLeft() {
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
   delay(100);
-  leftMotor->setSpeed(80);
+  leftMotor->setSpeed(innerwheelturnspeed);
   rightMotor->setSpeed(250);
   delay(turntime);
   while(true){
@@ -408,7 +432,7 @@ void turnLeft() {
     }
     Serial.println(rightlinesensorPin);
     if(digitalRead(rightlinesensorPin)){
-      straightfor(1000);
+      straightfor(600);
       break;
     }
   }
@@ -422,11 +446,13 @@ void backturnright(){
   flash = 1;
   leftMotor->setSpeed(250);
   rightMotor->setSpeed(250);
-  delay(200);
+  delay(forwardtime);
 
+  leftMotor->setSpeed(250);
+  rightMotor->setSpeed(200);
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
-  delay(700);
+  delay(backturntime);
   while(true){
     blue_flash.tick();
     if(pause == 1){
@@ -459,11 +485,11 @@ void backturnleft(){
   rightMotor->setSpeed(250);
   leftMotor->run(leftfor);
   rightMotor->run(rightfor);
-  delay(200);
+  delay(forwardtime);
 
   leftMotor->run(leftback);
   rightMotor->run(rightfor);
-  delay(700);
+  delay(backturntime);
   while(true){
     blue_flash.tick();
     if(pause == 1){
@@ -521,13 +547,13 @@ void donextcommand(){
     ccw180();
   }
   else if (next == -4){
-    grabber.write(80);
+    grabber.write(100);
     delay(20);
     turnLeft();
     grab();
   }
   else if (next == 4){
-    grabber.write(80);
+    grabber.write(100);
     delay(20);
     turnRight();
     grab();
@@ -654,7 +680,7 @@ void move() {
   }
   
   if(readfarleft() || readfarright()){
-    delay(80);
+    delay(40);
     if(!readfarleft() && !readfarright()){return;}  // Returns to loop if it was just a speck of dust
     leftenable = false;
     rightenable = false;
@@ -667,7 +693,7 @@ void move() {
 
 void setup() {
   tcs.begin();
-  blue_flash.every(500, blueflash);
+  blue_flash.every(250, blueflash);
 
   // put your setup code here, to run once:
   Serial.begin(9600);           // set up Serial library at 9600 bps
