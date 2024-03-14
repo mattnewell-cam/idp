@@ -7,7 +7,7 @@ auto blue_flash =  timer_create_default();
 #include<Servo.h>
 #define MAX_RANG (520)
 #define ADC_SOLUTION (1023.0)
-#define leftfor FORWARD
+#define leftfor FORWARD // These are just defined as variables because we had issues with the motors being installed the wrong way etc and this saves going through and changing all the FORWARDs to BACKWARD and vice versa
 #define leftback BACKWARD
 #define rightback BACKWARD
 #define rightfor FORWARD
@@ -26,19 +26,18 @@ int green = 10;
 int blue =11;
 int red = 13;
 
-int ultrasounddistance = 100;
-int pause= 0;
-bool leftenable = true;
+int pause= 0; // Pause changes from 0 to 1 or vice versa every time the button is pressed. When pause = 1, the robot is halted until pause is 0. 
+bool leftenable = true; // When leftenable is false, the left line sensor does not have any effect, and similar for rightenable
 bool rightenable = true;
-int forward = true;
-int sensityPin = A3; 
-//using namespace std;
+int forward = true; // When forward is set to false, instead of forwards line following occurring, the robot reverses.
+int sensityPin = A3; // Ultrasound pin
 Servo grabber;
+
 // -1 left, 0 straight, 1 right,-2 reverse left, 2 reverse right, -3 anticlockwise 180, 3 clockwise 180, -4 turn left and grab, 4 turn right and grab, -5 turn left and release, 5 turn right and release, 15 straight and release, 16 return to base
-std::vector<int> commandlist = {};
-std::vector<int> visited = {};
-int curr;
-int tar;
+std::vector<int> commandlist = {}; // Stores the list of junction instructions
+std::vector<int> visited = {}; // Stores the stations we've already been to
+int curr; // Current/most recent location of the robot
+int tar; // Target location
 int crashsensorpin = 12;
 
 // Parameters
@@ -60,20 +59,20 @@ int slowlinefollow_fast = 200; // These are the line following speeds when doing
 int slowlinefollow_slow = 100; //
 
 void slowlinefollow();
-int blueon = 0;
-int flash = 0;
+int blueon = 0; // Stores whether the blue LED, which must flash at 2Hz when moving, is currently on
+int flash = 0; // Stores whether the blue LED should currently be flashing
 //Servo myservo;
 void blueflash(){
   if (flash){
-  if(blueon == 0){
+    if(blueon == 0){
     blueon = 1;
   }else{
     blueon = 0;
   }
-  Serial.print("here");
   digitalWrite(blue,blueon);
   }
-}
+
+// Fairly unnecessary functions tbh
 int readfarleft(){
 
   return digitalRead(farleftPin);
@@ -81,6 +80,8 @@ int readfarleft(){
 int readfarright(){
   return digitalRead(farrightPin);
 }
+
+// Only actually reads the left pin if leftenable = true
 int readleft(){
   if(leftenable){
     return digitalRead(leftlinesensorPin);
@@ -97,6 +98,9 @@ int readright(){
     return 0;
   }
 }
+
+// Reads the colour sensor. Considering the relative magnitude of red compared to clear (all light) was found to be more consistent than 
+// using the actual value for red when distinguishing between red and black blocks, because red and clear move together with angle of sensor.
 bool is_red(){
   uint16_t clear, r, g, b;
   tcs.getRGBC(&r, &g, &b, &clear);
@@ -108,32 +112,35 @@ bool is_red(){
     return false;
   }
 }
+
 int ultrasoundread(){
   sensity_t = analogRead(sensityPin);
  // turn the ledPin on
  Serial.print(sensity_t * MAX_RANG / ADC_SOLUTION);
  return dist_t = sensity_t * MAX_RANG / ADC_SOLUTION;
 }
+
+// Used when reversing from the red pad and going to stations 4, 5 or 6
 void clockwise180() {
   flash = 1;
-  grabber.write(15);
+  grabber.write(15); // Put the grabber down, as we've just reversed from the pad
   Serial.println("Clockwise 180");
   forward = true;
-  delay(delay_180_straight);
+  delay(delay_180_straight); // Reversing for a short while after detecting the junction helps avoid detecting the junction again while turning
   leftMotor->run(leftfor);
   rightMotor->run(rightback);
   leftMotor->setSpeed(for_speed_180);
   rightMotor->setSpeed(rvs_speed_180);
   delay(delay_180_turn);
-   Serial.print("here");
   while(true){
     blue_flash.tick();
     if(pause == 1){
       return;
     }
+    // Stop if the button is pressed
     if(digitalRead(buttonPin)){
       delay(50);
-      Serial.print(digitalRead(buttonPin));
+      Serial.print(digitalRead(buttonPin)); // Debouncing
 
       pause = 1;
       flash = 0;
@@ -142,7 +149,8 @@ void clockwise180() {
     	rightMotor->setSpeed(0);
       break;
     }
-    Serial.println(leftlinesensorPin);
+    // Once the left line sensor pin sees the line, we can start line following again. Straightfor means it won't read the 
+    // outer sensors for a period, so that it doesn't pick up the junction we've just turned at
     if(digitalRead(leftlinesensorPin)){
       flash = 1;
       straightfor(post_180_delay);
@@ -151,6 +159,7 @@ void clockwise180() {
   }
 }
 
+// Used when reversing from the green pad and going to stations 4, 5 or 6
 void ccw180() {
   grabber.write(15);
   Serial.println("Clockwise 180");
@@ -188,6 +197,7 @@ void ccw180() {
   }
 }
 
+// Not actually line following (name is just a remnant) - just reverses
 void backlineFollow(){
   flash = 1;
   leftMotor->setSpeed(250);
@@ -196,6 +206,7 @@ void backlineFollow(){
   rightMotor->run(rightback);
 }
 
+// The main line following code - just slows down the wheel of whichever side's line sensor triggers
 void lineFollow() {
     flash = 1;
     Serial.println("Line following");
@@ -219,6 +230,8 @@ void lineFollow() {
       rightMotor->setSpeed(255);
     }
 }
+
+// Just line follows (while flashing the light), no reading of outer sensors 
 void straightfor(int p){
   for(int i=0;i<p/15;i++){
     blue_flash.tick();
@@ -228,6 +241,8 @@ void straightfor(int p){
     delay(15);
   }
 }
+
+// Used when picking up a block - the normal line follow is sometimes too fast and it would hit the buildings
 void slowlinefollow() {
     flash = 1;
     Serial.println("Line following");
@@ -251,23 +266,24 @@ void slowlinefollow() {
       rightMotor->setSpeed(slowlinefollow_fast);
     }
 }
+
 int detectblock(){
   if(ultrasoundread()<3){
-      delay(0);
-      if(ultrasoundread()<3)
       return true;
   }
   return false;
 }
+
+// Grab is called after the last turn before a block. It calls slow line follow and flashes blue light until it detects the block
 void grab(){
-    visited.push_back(tar);
+    visited.push_back(tar); // Add this station to the list of where we've been
 
     grabber.write(100);
     rightenable = true;
     leftenable = true;
     while(!detectblock()){
       blue_flash.tick();
-        slowlinefollow();
+      slowlinefollow();
     }
     // leftMotor->setSpeed(135);
     // rightMotor->setSpeed(135);
@@ -295,41 +311,31 @@ void grab(){
     }
     delay(5000);
     digitalWrite(red,0);
-      digitalWrite(green,0);
-    
-    //tar = 1;
+    digitalWrite(green,0);
+
     get_path(curr,tar);
     flash = 1;
 
 }
-// int detect_hit(){
-//   int hit = digitalRead(crashsensorpin);
 
-// }
+// Called after passing the last junction before the red or green pad. Calls line follow until the crash sensor detects the pad, 
+// then releases the block
 void release(){
   leftenable = true;
-    rightenable = true;
+  rightenable = true;
   while(digitalRead(crashsensorpin)){
     blue_flash.tick();
         lineFollow();
-    }
-  grabber.write(80);
+  }
+  grabber.write(80); // Extending the grabber releases the block
   flash = 0;
   digitalWrite(blue,0);
   leftMotor->setSpeed(0);
   rightMotor->setSpeed(0);
   delay(1500);
-  
-  // //grabber.write(0);
-  // int temp = tar;
-  // tar = curr +1;
-  // if(tar>6){
-  //   tar = 0;
-  // }
-  // curr = temp;
-  // get_path(curr,tar);
+
   int here = tar;
-  // We will always go to 3 first. We should always go to 4 second.
+  // We will always go to 3 first, defined in setup(). We should always go to 4 second.
   if (visited.size() == 1) {
     tar = 4; 
   }
@@ -437,6 +443,8 @@ void turnLeft() {
     }
   }
 }
+
+// Used when reversing from a pad or block pick-up and turning right
 void backturnright(){
   grabber.write(15);
   Serial.println("Back turn right");
@@ -513,12 +521,12 @@ void backturnleft(){
   }
 }
 
+// Called when we reach a junction. Calls the function pertaining to the number at the front of the command list.
 void donextcommand(){
   // Read first command, then remove from the queue
   int next = commandlist.front();
   commandlist.erase(commandlist.begin());
-  //int next = -4;
-  
+    
   if(next == -1){
       turnLeft();
     }
@@ -566,6 +574,7 @@ void donextcommand(){
     turnLeft();
     release();
   }
+  // Go straight then release the block
   else if(next == 15){
     flash = 1;
     //digitalWrite(blue,1);
@@ -574,6 +583,7 @@ void donextcommand(){
     delay(500);
     release();
   }
+  // At the very end when returning to start position, drive forward for a bit then stop.
   else if (next == 16){
     leftMotor->setSpeed(255);
     rightMotor->setSpeed(255);
@@ -582,11 +592,9 @@ void donextcommand(){
     rightMotor->setSpeed(0);
     pause = 1;
   }
-  // if(commandlist.empty()){
-  //   get_path(0,7);
-  // }
 }
 
+// Sets commandlist based on the current location and the target station
 void get_path(int currentPos, int target) {
   forward = false;  // In most cases we need to reverse after getting the path
   if (currentPos == 0 and target == 3) {
@@ -654,10 +662,9 @@ void get_path(int currentPos, int target) {
   }
 }
 
-
+// This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
 void move() {
-  // This function controls all the map navigation at a high level - follow the line, do a maneuvre, or stop.
-  while (pause) {
+ while (pause) {
       if (digitalRead(buttonPin)) {pause = 0;}
       delay(200);
     }
@@ -695,25 +702,19 @@ void setup() {
   tcs.begin();
   blue_flash.every(250, blueflash);
 
-  // put your setup code here, to run once:
   Serial.begin(9600);           // set up Serial library at 9600 bps
-    Serial.println("Adafruit Motorshield v2 - DC Motor test!");
+  Serial.println("Adafruit Motorshield v2 - DC Motor test!");
 
-    if (!AFMS.begin()) {         // create with the default frequency 1.6KHz
-    // if (!AFMS.begin(1000)) {  // OR with a different frequency, say 1KHz
-      Serial.println("Could not find Motor Shield. Check wiring.");
-      while (1);
-    }
-    Serial.println("Motor Shield found.");
+  if (!AFMS.begin()) {         // create with the default frequency 1.6KHz
+    Serial.println("Could not find Motor Shield. Check wiring.");
+    while (1);
+  }
+  Serial.println("Motor Shield found.");
   pause = 1;
-  // leftMotor->setSpeed(250);
-  // rightMotor->setSpeed(230);
-  // leftMotor->run(leftfor);
-  // rightMotor->run(rightfor);
   forward = true;
   grabber.attach(9);
   grabber.write(0);
-  curr = 0;
+  curr = 0; // Initially we want to go from start position, 0, to station 3. 
   tar = 3;
   get_path(curr, tar);
 }
